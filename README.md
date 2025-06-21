@@ -39,6 +39,55 @@
 - Укажите переменные окружения в настройках проекта Vercel.
 - Для webhook используйте путь `/api` (см. документацию Telegraf + Vercel).
 
+## Настройка Webhook для Telegram
+
+### 1. Установка webhook
+После деплоя на Vercel установите webhook для бота:
+
+```bash
+curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://your-project-name.vercel.app/api"
+```
+
+**Пример:**
+```bash
+curl "https://api.telegram.org/<YOUR_BOT_TOKEN>/setWebhook?url=https://walk-announcer-bot.vercel.app/api"
+```
+
+### 2. Проверка webhook
+Убедитесь, что webhook установлен правильно:
+
+```bash
+curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo"
+```
+
+**Успешный ответ:**
+```json
+{
+  "ok": true,
+  "result": {
+    "url": "https://your-project-name.vercel.app/api",
+    "has_custom_certificate": false,
+    "pending_update_count": 0,
+    "last_error_date": null,
+    "last_error_message": null,
+    "max_connections": 40
+  }
+}
+```
+
+### 3. Удаление webhook (если нужно)
+Для переключения обратно на polling:
+
+```bash
+curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/deleteWebhook"
+```
+
+### Важные замечания
+- Замените `<YOUR_BOT_TOKEN>` на реальный токен бота
+- Замените `your-project-name.vercel.app` на ваш реальный URL
+- После установки webhook бот работает только через webhook
+- Для локальной разработки используйте polling (`bot.launch()`)
+
 ## Структура проекта
 ```
 ├── src/
@@ -46,7 +95,10 @@
 │   ├── fsm.js         # FSM для диалогов
 │   ├── messages.js    # Все тексты сообщений
 │   └── ...
+├── api/
+│   └── index.js       # Express-обработчик для Vercel
 ├── .env.example       # Пример переменных окружения
+├── vercel.json        # Конфигурация для Vercel
 ├── package.json
 ├── README.md
 ```
@@ -60,3 +112,9 @@
 
 **Q:** Как добавить новые поля или изменить тексты?
 **A:** Все тексты вынесены в `src/messages.js`. Для новых полей — доработайте FSM в `src/bot.js` и `src/fsm.js`.
+
+**Q:** Webhook не работает, что делать?
+**A:** Проверьте правильность URL, доступность Vercel-приложения, токен бота и логи в Vercel Dashboard.
+
+**Q:** Как переключиться между webhook и polling?
+**A:** Для webhook используйте команды выше, для polling — `bot.launch()` в коде.
