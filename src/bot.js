@@ -14,6 +14,25 @@ const events = [];
 
 const channelUsername = process.env.CHANNEL_USERNAME || 'go_chill';
 
+// Функция для парсинга координат из текста
+function parseCoordinates(text) {
+  // Паттерны для координат: 55.7558, 37.6176 или 55.7558,37.6176
+  const coordPattern = /^(-?\d+\.?\d*)\s*[,;]\s*(-?\d+\.?\d*)$/;
+  const match = text.trim().match(coordPattern);
+  
+  if (match) {
+    const lat = parseFloat(match[1]);
+    const lng = parseFloat(match[2]);
+    
+    // Проверяем, что координаты в разумных пределах
+    if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      return { latitude: lat, longitude: lng };
+    }
+  }
+  
+  return null;
+}
+
 bot.start((ctx) => {
   ctx.reply(
     messages.start,
@@ -148,7 +167,14 @@ bot.on(['text', 'voice', 'location'], async (ctx) => {
         if (text.length >= 201) {
           return ctx.reply(messages.placeTooLong(text.length));
         }
-        place = text;
+        
+        // Пытаемся распарсить координаты из текста
+        const coords = parseCoordinates(text);
+        if (coords) {
+          place = coords;
+        } else {
+          place = text;
+        }
       }
       fsm.setDraftField(ctx.from.id, 'place', place);
       if (draft.isEditing) {
@@ -398,7 +424,7 @@ bot.action(/mod_approve_(\d+)/, async (ctx) => {
   event.channelChatId = channelId;
   
   // Уведомление автору
-  await ctx.telegram.sendMessage(userId, messages.published(event.topic, `https://t.me/${CHANNEL_USERNAME}/${sentMsg.message_id}`));
+  await ctx.telegram.sendMessage(userId, messages.published(event.topic, `https://t.me/${channelUsername.replace('@','')}/${sentMsg.message_id}`));
   ctx.editMessageReplyMarkup();
   ctx.reply('Анонс опубликован.');
   fsm.resetFSM(userId);
@@ -420,4 +446,4 @@ if (process.env.NODE_ENV !== 'production') {
   console.log('BOT: polling');
 }
 
-module.exports = bot; 
+module.exports = bot;
