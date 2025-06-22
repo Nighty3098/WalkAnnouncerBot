@@ -37,7 +37,6 @@ bot.command('myevents', (ctx) => {
       text += `📫 Место: ${e.place}\n`;
     }
     text += `🗓 Когда: ${e.datetime}\n`;
-    text += `💰 Стоимость: ${e.price || 'Не указана'}\n`;
     text += `📌 Контакт: ${e.contact}\n\n`;
     text += `Статус: ${messages.myEventStatus(e.status)}\n`;
     text += `#пошлигулять #${channelUsername.replace('@','')}`;
@@ -146,31 +145,10 @@ bot.on(['text', 'voice', 'location'], async (ctx) => {
         fsm.setState(ctx.from.id, fsm.STATES.PREVIEW);
         return sendPreview(ctx);
       }
-      fsm.setState(ctx.from.id, 'PRICE');
-      return ctx.reply(messages.price, Markup.keyboard([
-        ['Бесплатно', 'Donation', 'Ввести свою цену'],
-        ['❌ Отменить']
-      ]).resize());
-    }
-    
-    case 'PRICE': {
-      let price = ctx.message.text.trim();
-      if (price === 'Ввести свою цену') {
-        return ctx.reply(messages.priceCustom, Markup.keyboard([['❌ Отменить']]).resize());
-      }
-      if (price.length > 50) {
-        return ctx.reply(messages.priceTooLong);
-      }
-      fsm.setDraftField(ctx.from.id, 'price', price);
-      if (draft.isEditing) {
-        draft.isEditing = false;
-        fsm.setState(ctx.from.id, fsm.STATES.PREVIEW);
-        return sendPreview(ctx);
-      }
       fsm.setState(ctx.from.id, fsm.STATES.CONTACT);
       return ctx.reply(messages.contact, Markup.keyboard([['❌ Отменить']]).resize());
     }
-
+    
     case fsm.STATES.CONTACT: {
       const text = ctx.message.text.trim();
       if (text.length > 100) {
@@ -244,16 +222,14 @@ function sendPreview(ctx) {
     text += `📫 Место: ${draft.place}\n`;
   }
   text += `🗓 Когда: ${draft.datetime}\n`;
-  text += `💰 Стоимость: ${draft.price || 'Не указана'}\n`;
   text += `📌 Контакт: ${draft.contact}\n\n`;
   text += `#пошлигулять #${channelUsername.replace('@','')}`;
 
   const keyboard = Markup.inlineKeyboard([
-    [Markup.button.callback('✏ Тема', 'edit_topic'), Markup.button.callback('✏ Место', 'edit_place')],
-    [Markup.button.callback('✏ Дата и время', 'edit_datetime')],
-    [Markup.button.callback('✏ Стоимость', 'edit_price')],
-    [Markup.button.callback('✏ Контакт', 'edit_contact'), Markup.button.callback('✏ Описание', 'edit_description')],
-    [Markup.button.callback('✏ Фото', 'edit_photo')],
+    [Markup.button.callback('✏ Картинка', 'edit_photo'), Markup.button.callback('✏ Название', 'edit_topic')],
+    [Markup.button.callback('✏ Описание', 'edit_description'), Markup.button.callback('✏ Место', 'edit_place')],
+    [Markup.button.callback('✏ Дата и время', 'edit_datetime'), Markup.button.callback('✏ Контакт', 'edit_contact')],
+    [],
     [Markup.button.callback('✅ Всё верно, отправить!', 'submit')],
     [Markup.button.callback('❌ Отменить', 'cancel')],
   ]);
@@ -343,7 +319,6 @@ bot.action('submit', async (ctx) => {
     text += `📫 Место: ${draft.place}\n`;
   }
   text += `🗓 Когда: ${draft.datetime}\n`;
-  text += `💰 Стоимость: ${draft.price || 'Не указана'}\n`;
   text += `📌 Контакт: ${draft.contact}\n\n`;
   text += `#пошлигулять #${channelUsername.replace('@','')}`;
 
@@ -381,7 +356,6 @@ bot.action(/mod_approve_(\d+)/, async (ctx) => {
     text += `📫 Место: ${event.place}\n`;
   }
   text += `🗓 Когда: ${event.datetime}\n`;
-  text += `💰 Стоимость: ${event.price || 'Не указана'}\n`;
   text += `📌 Контакт: ${event.contact}\n\n`;
   text += `#пошлигулять #${channelUsername.replace('@','')}`;
 
@@ -416,7 +390,7 @@ bot.action(/mod_reject_(\d+)/, async (ctx) => {
 
 if (process.env.NODE_ENV !== 'production') {
   bot.launch();
-  console.log('Бот запущен в режиме polling');
+  console.log('BOT: polling');
 }
 
 module.exports = bot; 
