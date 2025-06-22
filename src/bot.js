@@ -401,7 +401,7 @@ bot.action(/mod_approve_(\d+)/, async (ctx) => {
   event.channelChatId = channelId;
   
   // Уведомление автору
-  await ctx.telegram.sendMessage(userId, messages.published(event.topic, `https://t.me/${channelId.replace('@','')}/${sentMsg.message_id}`));
+  await ctx.telegram.sendMessage(userId, messages.published(event.topic, `https://t.me/${CHANNEL_USERNAME}/${sentMsg.message_id}`));
   ctx.editMessageReplyMarkup();
   ctx.reply('Анонс опубликован.');
   fsm.resetFSM(userId);
