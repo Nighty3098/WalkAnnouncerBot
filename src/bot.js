@@ -125,7 +125,7 @@ bot.on(['text', 'voice', 'location'], async (ctx) => {
   switch(state) {
     case fsm.STATES.TOPIC: {
       const text = ctx.message.text.trim();
-      if (text.length > 100) {
+      if (text.length >= 101) {
         return ctx.reply(messages.topicTooLong(text.length));
       }
       fsm.setDraftField(ctx.from.id, 'topic', text);
@@ -145,7 +145,7 @@ bot.on(['text', 'voice', 'location'], async (ctx) => {
         place = { latitude, longitude };
       } else {
         const text = ctx.message.text.trim();
-        if (text.length > 200) {
+        if (text.length >= 201) {
           return ctx.reply(messages.placeTooLong(text.length));
         }
         place = text;
@@ -176,7 +176,7 @@ bot.on(['text', 'voice', 'location'], async (ctx) => {
     
     case fsm.STATES.CONTACT: {
       const text = ctx.message.text.trim();
-      if (text.length > 100) {
+      if (text.length >= 101) {
         return ctx.reply(messages.contactTooLong(text.length));
       }
       fsm.setDraftField(ctx.from.id, 'contact', text);
@@ -191,7 +191,7 @@ bot.on(['text', 'voice', 'location'], async (ctx) => {
 
     case fsm.STATES.DESCRIPTION: {
       const text = ctx.message.text.trim();
-      if (text.length > 500) {
+      if (text.length >= 501) {
         return ctx.reply(messages.descriptionTooLong(text.length));
       }
       fsm.setDraftField(ctx.from.id, 'description', text);
