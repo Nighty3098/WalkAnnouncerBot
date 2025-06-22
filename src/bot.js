@@ -25,6 +25,10 @@ bot.start((ctx) => {
 bot.command('myevents', (ctx) => {
   const userId = ctx.from.id;
   const myEvents = events.filter(e => e.authorId === userId);
+  console.log('Команда /myevents для пользователя:', userId);
+  console.log('Найдено анонсов:', myEvents.length);
+  console.log('Все анонсы:', myEvents);
+  
   if (myEvents.length === 0) {
     ctx.reply(messages.noEvents);
     return;
@@ -52,11 +56,32 @@ bot.command('myevents', (ctx) => {
 });
 
 // Удаление анонса пользователем
-bot.action(/delete_event_(\d+)/, (ctx) => {
+bot.action(/delete_event_(\d+)/, async (ctx) => {
   const eventId = Number(ctx.match[1]);
+  console.log('Попытка удаления анонса:', eventId, 'пользователем:', ctx.from.id);
+  console.log('Всего анонсов в памяти:', events.length);
+  console.log('Анонсы пользователя:', events.filter(e => e.authorId === ctx.from.id));
+  
   const idx = events.findIndex(e => e.id === eventId && e.authorId === ctx.from.id);
-  if (idx === -1) return ctx.reply('Анонс не найден или вы не являетесь его автором.');
-  events.splice(idx, 1);
+  if (idx === -1) {
+    console.log('Анонс не найден или пользователь не является автором');
+    return ctx.reply('Анонс не найден или вы не являетесь его автором.');
+  }
+  
+  const deletedEvent = events.splice(idx, 1)[0];
+  console.log('Анонс удален:', deletedEvent);
+  
+  // Если анонс был опубликован, удаляем сообщение из канала
+  if (deletedEvent.status === 'published' && deletedEvent.channelMessageId && deletedEvent.channelChatId) {
+    try {
+      await ctx.telegram.deleteMessage(deletedEvent.channelChatId, deletedEvent.channelMessageId);
+      console.log('Сообщение удалено из канала');
+    } catch (error) {
+      console.error('Ошибка при удалении сообщения из канала:', error.message);
+      // Не прерываем выполнение, если не удалось удалить из канала
+    }
+  }
+  
   ctx.editMessageReplyMarkup();
   ctx.reply(messages.eventDeleted);
 });
@@ -370,6 +395,11 @@ bot.action(/mod_approve_(\d+)/, async (ctx) => {
       parse_mode: 'HTML'
     });
   }
+  
+  // Сохраняем информацию о сообщении в канале для возможности удаления
+  event.channelMessageId = sentMsg.message_id;
+  event.channelChatId = channelId;
+  
   // Уведомление автору
   await ctx.telegram.sendMessage(userId, messages.published(event.topic, `https://t.me/${channelId.replace('@','')}/${sentMsg.message_id}`));
   ctx.editMessageReplyMarkup();
