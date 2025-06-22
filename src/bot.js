@@ -157,10 +157,7 @@ bot.on(['text', 'voice', 'location'], async (ctx) => {
         return sendPreview(ctx);
       }
       fsm.setState(ctx.from.id, fsm.STATES.DATETIME);
-      return ctx.reply(messages.datetime, Markup.keyboard([
-        ['Сегодня', 'Завтра'],
-        ['❌ Отменить']
-      ]).resize());
+      return ctx.reply(messages.datetime, Markup.keyboard([['❌ Отменить']]).resize());
     }
 
     case fsm.STATES.DATETIME: {
